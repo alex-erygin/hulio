@@ -3,3 +3,4 @@ source/huliobot/bin/
 source/huliobot/obj/
 packages/
 *.suo
+source/huliobot/SecretSettings.xml
