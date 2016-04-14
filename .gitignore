@@ -1,4 +1,5 @@
 out/
 source/huliobot/bin/
 source/huliobot/obj/
-source/huliobot/SecretSettings.xml
+packages/
+*.suo
