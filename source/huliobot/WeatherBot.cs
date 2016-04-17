@@ -17,6 +17,8 @@ namespace huliobot
     /// </summary>
     public class WeatherBot : IBot
     {
+        private static TimeSpan actionTime = new TimeSpan(7,30,0);
+
         private static Api Bot
         {
             get
@@ -29,16 +31,27 @@ namespace huliobot
 
         public async Task Start()
         {
-            var policy = Policy
-                .Handle<Exception>()
-                .WaitAndRetry(200, i => TimeSpan.FromSeconds(1));
-
-            await policy.Execute(() =>
+            while (true)
             {
-                var todayWeather = GetTodayWeather();
-                var result = BuildMessage(todayWeather);
-                return Bot.SendTextMessage(SettingsStore.Settings["chatId"], result.ToString());
-            });
+                var now = DateTime.Now;
+                if (now.Hour == actionTime.Hours && now.Minute == actionTime.Minutes)
+                {
+
+
+                    var policy = Policy
+                        .Handle<Exception>()
+                        .WaitAndRetry(200, i => TimeSpan.FromSeconds(1));
+
+                    await policy.Execute(() =>
+                    {
+                        var todayWeather = GetTodayWeather();
+                        var result = BuildMessage(todayWeather);
+                        return Bot.SendTextMessage(SettingsStore.Settings["chatId"], result.ToString());
+                    });
+                }
+
+                await Task.Delay(TimeSpan.FromHours(1));
+            }
         }
 
         private static StringBuilder BuildMessage(fact todayWeather)
