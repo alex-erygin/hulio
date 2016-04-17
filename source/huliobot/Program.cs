@@ -1,6 +1,7 @@
-﻿using Topshelf;
-
-// ReSharper disable All
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace huliobot
 {
@@ -11,20 +12,18 @@ namespace huliobot
     {
         private static void Main(string[] args)
         {
-            HostFactory.Run(x =>
-            {
-                x.Service<HulioBot>(s =>
-                {
-                    s.ConstructUsing(name => new HulioBot());
-                    s.WhenStarted(bot => bot.Start());
-                    s.WhenStopped(bot => bot.Stop());
-                });
+            var hulio = new HulioBot();
+            var weatherBot = new WeatherBot();
+            RunMyBots(new IBot[] {hulio, weatherBot});
+            Console.ReadKey();
+        }
 
-                x.StartAutomatically();
-                x.SetDescription("Hulio bot");
-                x.SetDisplayName("Hulio");
-                x.SetServiceName("Hulio");
-            });
+        private static void RunMyBots(IEnumerable<IBot> bots)
+        {
+            foreach (var bot in bots)
+            {
+                bot.Start();
+            }
         }
     }
 }

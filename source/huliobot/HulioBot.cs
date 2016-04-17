@@ -12,7 +12,10 @@ using Telegram.Bot.Types;
 
 namespace huliobot
 {
-    public class HulioBot
+    /// <summary>
+    /// Sends some usefult metrics by request.
+    /// </summary>
+    public class HulioBot : IBot
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -29,13 +32,9 @@ namespace huliobot
             offset = configManager.Get<int>(nameof(offset));
         }
 
-        public void Start()
+        public Task Start()
         {
-            Run().Wait();
-        }
-
-        public void Stop()
-        {
+            return Run();
         }
 
         private async void OnFm(Api api, Update update)
@@ -46,7 +45,7 @@ namespace huliobot
             await StackOverflowRep(response);
             await Hacker(response);
             await Nuget(response);
-
+            
             await api.SendTextMessage(update.Message.Chat.Id, response.ToString());
         }
 
@@ -89,11 +88,11 @@ namespace huliobot
             }
         }
 
-        public async Task Run()
+        private async Task Run()
         {
             try
             {
-                string token = SettingsStore.Tokens["hulio-token"];
+                string token = SettingsStore.Settings["hulio-token"];
                 Api bot = new Api(token);
                 User me = await bot.GetMe();
                 Logger.Debug($"{me.Username} на связи");
