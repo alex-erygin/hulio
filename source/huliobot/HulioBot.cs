@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NLog;
-using SafeConfig;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -16,17 +15,21 @@ namespace huliobot
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly Dictionary<string, ICommandHandler> commandHandlers = new Dictionary<string, ICommandHandler>();
 
-        private readonly ConfigManager configManager;
-        private readonly int offset;
+        private static int offset;
 
         public HulioBot()
         {
             commandHandlers[Commands.Statistics] = new StatisticsCommandHandler();
             commandHandlers[Commands.Weather] = new WeatherHandler();
 
-            configManager = new ConfigManager().WithCurrentUserScope()
-                .Load();
-            offset = configManager.Get<int>(nameof(offset));
+			//http://stackoverflow.com/questions/4926676/mono-webrequest-fails-with-https
+			System.Net.ServicePointManager.ServerCertificateValidationCallback +=
+				delegate (object sender, System.Security.Cryptography.X509Certificates.X509Certificate certificate,
+					System.Security.Cryptography.X509Certificates.X509Chain chain,
+					System.Net.Security.SslPolicyErrors sslPolicyErrors)
+			{
+				return true;
+			};
         }
 
         public async Task Start()
@@ -38,8 +41,6 @@ namespace huliobot
                 var me = await bot.GetMe();
                 Logger.Debug($"{me.Username} на связи");
 
-                var offset = configManager.Load()
-                    .Get<int>("offset");
                 while (true)
                 {
                     var updates = await bot.GetUpdates(offset);
@@ -65,8 +66,6 @@ namespace huliobot
 
                         offset = update.Id + 1;
                     }
-                    configManager.Set(nameof(offset), offset)
-                        .Save();
                     await Task.Delay(1000);
                 }
             }
