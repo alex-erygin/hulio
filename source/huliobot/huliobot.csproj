@@ -77,13 +77,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandHandler.cs" />
     <Compile Include="Contracts\YandexWeatherFact.cs" />
     <Compile Include="HulioBot.cs" />
     <Compile Include="IBot.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SettingsStore.cs" />
-    <Compile Include="WeatherBot.cs" />
+    <Compile Include="StatisticsCommandHandler.cs" />
+    <Compile Include="WeatherHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

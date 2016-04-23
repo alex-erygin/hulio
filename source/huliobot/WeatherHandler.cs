@@ -3,56 +3,34 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 using huliobot.Contracts;
 using Polly;
 using Telegram.Bot;
+using Telegram.Bot.Types;
 
 namespace huliobot
 {
     /// <summary>
     ///     Sends today`s weather
     /// </summary>
-    public class WeatherBot : IBot
+    public class WeatherHandler : ICommandHandler
     {
-        private static TimeSpan actionTime = new TimeSpan(7,30,0);
-
-        private static Api Bot
+        public async void Handle(Api botApi, Update update)
         {
-            get
+            var policy = Policy
+                .Handle<Exception>()
+                .WaitAndRetry(200, i => TimeSpan.FromSeconds(1));
+
+            await policy.Execute(() =>
             {
-                var token = SettingsStore.Settings["hulio-token"];
-                var bot = new Api(token);
-                return bot;
-            }
+                var todayWeather = GetTodayWeather();
+                var result = BuildMessage(todayWeather);
+                return botApi.SendTextMessage(SettingsStore.Settings["chatId"], result.ToString());
+            });
         }
 
-        public async Task Start()
-        {
-            while (true)
-            {
-                var now = DateTime.Now;
-                if (now.Hour == actionTime.Hours && now.Minute == actionTime.Minutes)
-                {
-
-
-                    var policy = Policy
-                        .Handle<Exception>()
-                        .WaitAndRetry(200, i => TimeSpan.FromSeconds(1));
-
-                    await policy.Execute(() =>
-                    {
-                        var todayWeather = GetTodayWeather();
-                        var result = BuildMessage(todayWeather);
-                        return Bot.SendTextMessage(SettingsStore.Settings["chatId"], result.ToString());
-                    });
-                }
-
-                await Task.Delay(TimeSpan.FromHours(1));
-            }
-        }
 
         private static StringBuilder BuildMessage(fact todayWeather)
         {
@@ -60,6 +38,7 @@ namespace huliobot
             result.AppendLine($"Привет, погода на сегодня: {todayWeather.weather_type}");
             result.AppendLine($"Температура: {todayWeather.temperature.Value}");
             result.AppendLine($"Влажность: {todayWeather.humidity}");
+            result.AppendLine($"Ветрище: {todayWeather.wind_speed}");
             return result;
         }
 

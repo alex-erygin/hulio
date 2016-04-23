@@ -1,9 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using NLog;
 using SafeConfig;
@@ -13,104 +9,55 @@ using Telegram.Bot.Types;
 namespace huliobot
 {
     /// <summary>
-    /// Sends some usefult metrics by request.
+    ///     Sends some usefult metrics by request.
     /// </summary>
     public class HulioBot : IBot
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private readonly Dictionary<string, ICommandHandler> commandHandlers = new Dictionary<string, ICommandHandler>();
 
-        private readonly Dictionary<string, Action<Api, Update>> commandHandlers =
-            new Dictionary<string, Action<Api, Update>>();
-
-        private ConfigManager configManager;
-        private int offset;
+        private readonly ConfigManager configManager;
+        private readonly int offset;
 
         public HulioBot()
         {
-            commandHandlers[Commands.Statistics] = OnFm;
-            configManager = new ConfigManager().WithCurrentUserScope().Load();
+            commandHandlers[Commands.Statistics] = new StatisticsCommandHandler();
+            commandHandlers[Commands.Weather] = new WeatherHandler();
+
+            configManager = new ConfigManager().WithCurrentUserScope()
+                .Load();
             offset = configManager.Get<int>(nameof(offset));
         }
 
-        public Task Start()
-        {
-            return Run();
-        }
-
-        private async void OnFm(Api api, Update update)
-        {
-            //get rep on stackoverflow
-            StringBuilder response = new StringBuilder();
-
-            await StackOverflowRep(response);
-            await Hacker(response);
-            await Nuget(response);
-            
-            await api.SendTextMessage(update.Message.Chat.Id, response.ToString());
-        }
-
-        private static async Task Nuget(StringBuilder response)
-        {
-            HttpClient client = new HttpClient();
-            string page = await client.GetStringAsync(@"https://www.nuget.org/profiles/AlexErygin");
-            Regex regex = new Regex(@"<p\s+class=""stat-number"">(?<rep>\d{1,6})</p>");
-            MatchCollection matches = regex.Matches(page);
-            Match match = matches.Cast<Match>().LastOrDefault(x => x.Success);
-            if (match != null)
-            {
-                response.AppendLine($"Nuget: {match.Groups["rep"].Value}");
-            }
-        }
-        
-        private static async Task StackOverflowRep(StringBuilder response)
-        {
-            HttpClient client = new HttpClient();
-            string page = await client.GetStringAsync(@"http://stackoverflow.com/users/1549113/alex-erygin");
-            Regex regex = new Regex(@"title=""reputation"">\s+(?<rep>\d{1,6})\s+<span");
-            MatchCollection matches = regex.Matches(page);
-            Match match = matches.Cast<Match>().Where(x => x.Success).FirstOrDefault();
-            if (match != null)
-            {
-                response.AppendLine($"stack: {match.Groups["rep"].Value}");
-            }
-        }
-
-        private static async Task Hacker(StringBuilder response)
-        {
-            HttpClient client = new HttpClient();
-            string page = await client.GetStringAsync(@"https://xakep.ru/2016/03/11/pki/");
-            Regex regex = new Regex(@"<span class=""numcount"">(?<views>\d{1,6})</span>");
-            MatchCollection matches = regex.Matches(page);
-            Match match = matches.Cast<Match>().Where(x => x.Success).FirstOrDefault();
-            if (match != null)
-            {
-                response.AppendLine($"X-PKI-views: {match.Groups["views"].Value}");
-            }
-        }
-
-        private async Task Run()
+        public async Task Start()
         {
             try
             {
-                string token = SettingsStore.Settings["hulio-token"];
-                Api bot = new Api(token);
-                User me = await bot.GetMe();
+                var token = SettingsStore.Settings["hulio-token"];
+                var bot = new Api(token);
+                var me = await bot.GetMe();
                 Logger.Debug($"{me.Username} на св€зи");
 
-                int offset = configManager.Load().Get<int>("offset");
+                var offset = configManager.Load()
+                    .Get<int>("offset");
                 while (true)
                 {
-                    Update[] updates = await bot.GetUpdates(offset);
+                    var updates = await bot.GetUpdates(offset);
 
-                    foreach (Update update in updates)
+                    foreach (var update in updates)
                     {
                         switch (update.Message.Type)
                         {
                             case MessageType.TextMessage:
                             {
-                                if (commandHandlers.ContainsKey(update.Message.Text))
+                                var key = update.Message.Text.ToUpper();
+                                if (commandHandlers.ContainsKey(key))
                                 {
-                                    commandHandlers[update.Message.Text](bot, update);
+                                    commandHandlers[key].Handle(bot, update);
+                                }
+                                else
+                                {
+                                    await bot.SendTextMessage(SettingsStore.Settings["chatId"], "я вас не понимаю");
                                 }
                             }
                                 break;
@@ -118,7 +65,8 @@ namespace huliobot
 
                         offset = update.Id + 1;
                     }
-                    configManager.Set(nameof(offset), offset).Save();
+                    configManager.Set(nameof(offset), offset)
+                        .Save();
                     await Task.Delay(1000);
                 }
             }
@@ -131,10 +79,9 @@ namespace huliobot
 
         private class Commands
         {
-            /// <summary>
-            ///     ¬ыводит статистику.
-            /// </summary>
-            public static string Statistics => "/fm";
+            public static string Statistics => "/FM";
+
+            public static string Weather => "/POGODA";
         }
     }
 }

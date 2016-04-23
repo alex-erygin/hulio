@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace huliobot
 {
@@ -13,8 +11,7 @@ namespace huliobot
         private static void Main(string[] args)
         {
             var hulio = new HulioBot();
-            var weatherBot = new WeatherBot();
-            RunMyBots(new IBot[] {hulio, weatherBot});
+            RunMyBots(new IBot[] {hulio});
             Console.ReadKey();
         }
 
