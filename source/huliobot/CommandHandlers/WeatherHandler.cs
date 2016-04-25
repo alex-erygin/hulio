@@ -3,9 +3,11 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 using huliobot.Contracts;
+using Newtonsoft.Json;
 using Polly;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -19,26 +21,22 @@ namespace huliobot
     {
         public async void Handle(Api botApi, Update update)
         {
-            var policy = Policy
-                .Handle<Exception>()
-                .WaitAndRetry(200, i => TimeSpan.FromSeconds(1));
+            var url = $"http://api.openweathermap.org/data/2.5/weather?id=524901&appid={SettingsStore.Settings["openWeatherMapId"]}&units=metric";
+            var client = new WebClient { Encoding = Encoding.UTF8 };
 
-            await policy.Execute(() =>
-            {
-                var todayWeather = GetTodayWeather();
-                var result = BuildMessage(todayWeather);
-                return botApi.SendTextMessage(SettingsStore.Settings["chatId"], result.ToString());
-            });
+            var weatherJson = client.DownloadString(url);
+            Rootobject weather = JsonConvert.DeserializeObject<Rootobject>(weatherJson);
+            await botApi.SendTextMessage(SettingsStore.Settings["chatId"], BuildMessage(weather).ToString());
         }
 
 
-        private static StringBuilder BuildMessage(fact todayWeather)
+        private static StringBuilder BuildMessage(Rootobject todayWeather)
         {
             var result = new StringBuilder();
-            result.AppendLine($"Привет, погода на сегодня: {todayWeather.weather_type}");
-            result.AppendLine($"Температура: {todayWeather.temperature.Value}");
-            result.AppendLine($"Влажность: {todayWeather.humidity}");
-            result.AppendLine($"Ветрище: {todayWeather.wind_speed}");
+            result.AppendLine($"Привет, погода на сегодня: {todayWeather.weather[0].description}");
+            result.AppendLine($"Температура: {todayWeather.main.temp}");
+            result.AppendLine($"Влажность: {todayWeather.main.humidity}");
+            result.AppendLine($"Ветрище: {todayWeather.wind.speed}");
             return result;
         }
 
