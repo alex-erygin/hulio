@@ -23,6 +23,7 @@ namespace huliobot
         {
             HttpClient client = new HttpClient();
             string page = await client.GetStringAsync(@"https://www.nuget.org/profiles/AlexErygin");
+            page = page.Replace(",", string.Empty);
             Regex regex = new Regex(@"<p\s+class=""stat-number"">(?<rep>\d{1,6})</p>");
             MatchCollection matches = regex.Matches(page);
             Match match = matches.Cast<Match>().LastOrDefault(x => x.Success);

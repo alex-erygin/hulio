@@ -1,5 +1,6 @@
 ﻿namespace huliobot.Contracts
 {
+
     public class Rootobject
     {
         public Coord coord { get; set; }
@@ -24,17 +25,18 @@
     public class Main
     {
         public float temp { get; set; }
-        public int pressure { get; set; }
+        public float pressure { get; set; }
         public int humidity { get; set; }
         public float temp_min { get; set; }
         public float temp_max { get; set; }
+        public float sea_level { get; set; }
+        public float grnd_level { get; set; }
     }
 
     public class Wind
     {
-        public int speed { get; set; }
-        public int deg { get; set; }
-        public int gust { get; set; }
+        public float speed { get; set; }
+        public float deg { get; set; }
     }
 
     public class Clouds
@@ -44,8 +46,6 @@
 
     public class Sys
     {
-        public int type { get; set; }
-        public int id { get; set; }
         public float message { get; set; }
         public string country { get; set; }
         public int sunrise { get; set; }

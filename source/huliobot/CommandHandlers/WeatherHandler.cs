@@ -39,19 +39,5 @@ namespace huliobot
             result.AppendLine($"Ветрище: {todayWeather.wind.speed}");
             return result;
         }
-
-        private static fact GetTodayWeather()
-        {
-            var client = new WebClient {Encoding = Encoding.UTF8};
-            var weatherXml = client.DownloadString("http://export.yandex.ru/weather-ng/forecasts/27612.xml");
-            var xml = XDocument.Parse(weatherXml)
-                .Root.Elements()
-                .SingleOrDefault(x => x.Name.LocalName == "fact");
-
-            var serializer = new XmlSerializer(typeof(fact));
-            var todayWeather =
-                (fact) serializer.Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(xml.ToString())));
-            return todayWeather;
-        }
     }
 }
