@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -12,11 +13,18 @@ namespace huliobot
     {
         public async void Handle(Api botApi, Update update)
         {
-            StringBuilder response = new StringBuilder();
-            await StackOverflowRep(response);
-            await Hacker(response);
-            await Nuget(response);
-            await botApi.SendTextMessage(update.Message.Chat.Id, response.ToString());
+            try
+            {
+                StringBuilder response = new StringBuilder();
+                await StackOverflowRep(response);
+                await Hacker(response);
+                await Nuget(response);
+                await botApi.SendTextMessage(update.Message.Chat.Id, response.ToString());
+            }
+            catch (Exception ex)
+            {
+                await botApi.SendTextMessage(update.Message.Chat.Id, ex.Message);
+            }
         }
 
         private static async Task Nuget(StringBuilder response)

@@ -21,6 +21,7 @@ namespace huliobot
         {
             commandHandlers[Commands.Statistics] = new StatisticsCommandHandler();
             commandHandlers[Commands.Weather] = new WeatherHandler();
+            commandHandlers[Commands.USD] = new USDHandler();
 
 			//http://stackoverflow.com/questions/4926676/mono-webrequest-fails-with-https
 			System.Net.ServicePointManager.ServerCertificateValidationCallback +=
@@ -54,7 +55,14 @@ namespace huliobot
                                 var key = update.Message.Text.ToUpper();
                                 if (commandHandlers.ContainsKey(key))
                                 {
-                                    commandHandlers[key].Handle(bot, update);
+                                    try
+                                    {
+                                        commandHandlers[key].Handle(bot, update);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Logger.Error(ex, $"Случилась ошибка при обрпботке запроса {key}");
+                                    }
                                 }
                                 else
                                 {
@@ -78,9 +86,11 @@ namespace huliobot
 
         private class Commands
         {
-            public static string Statistics => "/FM";
+            public static string Statistics => "/STATS";
 
             public static string Weather => "/POGODA";
+
+            public static string USD => "/USD";
         }
     }
 }

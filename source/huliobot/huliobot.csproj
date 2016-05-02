@@ -63,7 +63,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandHandler.cs" />
+    <Compile Include="CommandHandlers\USDHandler.cs" />
     <Compile Include="Contracts\OpenWeatherMap.cs" />
+    <Compile Include="Contracts\Currency.cs" />
     <Compile Include="HulioBot.cs" />
     <Compile Include="IBot.cs" />
     <Compile Include="Program.cs" />

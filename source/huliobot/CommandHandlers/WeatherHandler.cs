@@ -8,6 +8,7 @@ using System.Xml.Linq;
 using System.Xml.Serialization;
 using huliobot.Contracts;
 using Newtonsoft.Json;
+using NLog;
 using Polly;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -21,12 +22,33 @@ namespace huliobot
     {
         public async void Handle(Api botApi, Update update)
         {
-            var url = $"http://api.openweathermap.org/data/2.5/weather?id=524901&appid={SettingsStore.Settings["openWeatherMapId"]}&units=metric";
-            var client = new WebClient { Encoding = Encoding.UTF8 };
+            var chatId = SettingsStore.Settings["chatId"];
+            try
+            {
+                await DoSendWeather(botApi, chatId);
+            }
+            catch (Exception ex)
+            {
+                await SendError(botApi, chatId, ex);
+            }
+        }
+
+        private static async Task SendError(Api botApi, string chatId, Exception ex)
+        {
+            await botApi.SendTextMessage(chatId, ex.Message);
+        }
+
+        private static async Task DoSendWeather(Api botApi, string chatId)
+        {
+            var url =
+                $"http://api.openweathermap.org/data/2.5/weather?id=524901&appid={SettingsStore.Settings["openWeatherMapId"]}&units=metric";
+            var client = new WebClient {Encoding = Encoding.UTF8};
 
             var weatherJson = client.DownloadString(url);
             Rootobject weather = JsonConvert.DeserializeObject<Rootobject>(weatherJson);
-            await botApi.SendTextMessage(SettingsStore.Settings["chatId"], BuildMessage(weather).ToString());
+            await botApi.SendChatAction(chatId, ChatAction.Typing);
+            await botApi.SendTextMessage(chatId, BuildMessage(weather)
+                .ToString());
         }
 
 
