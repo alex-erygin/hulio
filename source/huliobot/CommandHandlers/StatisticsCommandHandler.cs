@@ -45,12 +45,12 @@ namespace huliobot
         {
             HttpClient client = new HttpClient();
             string page = await client.GetStringAsync(@"http://stackoverflow.com/users/1549113/alex-erygin");
-            Regex regex = new Regex(@"title=""reputation"">\s+(?<rep>\d{1,6})\s+<span");
+            Regex regex = new Regex(@"title=""reputation"">\s+(?<rep>.{1,6})\s+<span");
             MatchCollection matches = regex.Matches(page);
             Match match = matches.Cast<Match>().Where(x => x.Success).FirstOrDefault();
             if (match != null)
             {
-                response.AppendLine($"stack: {match.Groups["rep"].Value}");
+                response.AppendLine($"stack: {match.Groups[1].Value}");
             }
         }
 

@@ -24,7 +24,7 @@ namespace huliobot
             }
             catch (Exception ex)
             {
-                await botApi.SendTextMessage(update.Message.Chat.Id, "Ошибочка. " + ex.Message);
+                await botApi.SendTextMessage(update.Message.Chat.Id, "Error. " + ex.Message);
             }
         }
 

@@ -1,5 +1,7 @@
-using System;
+п»їusing System;
 using System.Collections.Generic;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using NLog;
 using Telegram.Bot;
@@ -25,12 +27,7 @@ namespace huliobot
 
 			//http://stackoverflow.com/questions/4926676/mono-webrequest-fails-with-https
 			System.Net.ServicePointManager.ServerCertificateValidationCallback +=
-				delegate (object sender, System.Security.Cryptography.X509Certificates.X509Certificate certificate,
-					System.Security.Cryptography.X509Certificates.X509Chain chain,
-					System.Net.Security.SslPolicyErrors sslPolicyErrors)
-			{
-				return true;
-			};
+			    (sender, certificate, chain, sslPolicyErrors) => true;
         }
 
         public async Task Start()
@@ -40,7 +37,7 @@ namespace huliobot
                 var token = SettingsStore.Settings["hulio-token"];
                 var bot = new Api(token);
                 var me = await bot.GetMe();
-                Logger.Debug($"{me.Username} на связи");
+                Logger.Debug($"{me.Username} started");
 
                 while (true)
                 {
@@ -61,12 +58,12 @@ namespace huliobot
                                     }
                                     catch (Exception ex)
                                     {
-                                        Logger.Error(ex, $"Случилась ошибка при обрпботке запроса {key}");
+                                        Logger.Error(ex, $"Error {key}");
                                     }
                                 }
                                 else
                                 {
-                                    await bot.SendTextMessage(SettingsStore.Settings["chatId"], "Я вас не понимаю");
+                                    await bot.SendTextMessage(SettingsStore.Settings["chatId"], "Unknown command");
                                 }
                             }
                                 break;
