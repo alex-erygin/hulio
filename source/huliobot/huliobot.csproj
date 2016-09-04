@@ -74,6 +74,7 @@
     <Compile Include="SettingsStore.cs" />
     <Compile Include="CommandHandlers\StatisticsCommandHandler.cs" />
     <Compile Include="CommandHandlers\WeatherHandler.cs" />
+    <Compile Include="SlackClient.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
