@@ -14,6 +14,7 @@ namespace huliobot
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly Dictionary<string, ICommandHandler> commandHandlers = new Dictionary<string, ICommandHandler>();
+        private readonly MyLogger pipboy = new MyLogger("#pipboy");
 
         private static int offset;
 
@@ -61,6 +62,7 @@ namespace huliobot
                                 }
                                 else
                                 {
+                                    pipboy.Debug(update.Message.Text);
                                     await bot.SendTextMessage(SettingsStore.Settings["chatId"], "Unknown command");
                                 }
                             }
