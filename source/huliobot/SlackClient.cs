@@ -11,19 +11,26 @@ namespace huliobot
 
     public class MyLogger
     {
+        private readonly string _channel;
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public static void Debug(string message)
+        public MyLogger(string channel)
+        {
+            if (channel == null) throw new ArgumentNullException(nameof(channel));
+            _channel = channel;
+        }
+
+        public void Debug(string message)
         {
             Logger.Debug(message);
-            Slacker.Send(message).Wait();
+            Slacker.Send(message, _channel).Wait();
         }
 
 
-        public static void Error(Exception ex, string message)
+        public void Error(Exception ex, string message)
         {
             Logger.Error(ex, message);
-            Slacker.Send(message + ":" + ex.Message);
+            Slacker.Send(message + ":" + ex.Message, _channel);
         }
     }
 
@@ -33,7 +40,7 @@ namespace huliobot
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public static Task Send(string message)
+        public static Task Send(string message, string channel)
         {
             return Task.Run(() =>
             {
@@ -45,7 +52,7 @@ namespace huliobot
 
                     client.PostMessage(username: "Hulio",
                         text: message,
-                        channel: "#hulio");
+                        channel: channel);
                 }
                 catch (Exception ex)
                 {

@@ -14,22 +14,23 @@ namespace huliobot
     /// </summary>
     public class USDHandler : ICommandHandler
     {
+        private static readonly MyLogger Logger = new MyLogger("#usd");
 
         public async void Handle(Api botApi, Update update)
         {
             try
             {
-                MyLogger.Debug("USD command handing begins");
+                Logger.Debug("USD command handing begins");
                 await botApi.SendChatAction(update.Message.Chat.Id, ChatAction.Typing);
                 var moneyString = await GetUsdExchange();
                 var money = JsonConvert.DeserializeObject<Money>(moneyString);
 
-                MyLogger.Debug($"Result is {money.quotes.USDRUB:####.00}");
+                Logger.Debug($"Result is {money.quotes.USDRUB:####.00}");
                 await botApi.SendTextMessage(update.Message.Chat.Id, $"{money.quotes.USDRUB:####.00}");
             }
             catch (Exception ex)
             {
-                MyLogger.Error(ex, "USD goes wrong");
+                Logger.Error(ex, "USD goes wrong");
                 await botApi.SendTextMessage(update.Message.Chat.Id, "Error. " + ex.Message);
             }
         }

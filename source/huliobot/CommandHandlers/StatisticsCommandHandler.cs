@@ -12,21 +12,22 @@ namespace huliobot
 {
     public class StatisticsCommandHandler : ICommandHandler
     {
+        private static readonly MyLogger Logger = new MyLogger("#statistics");
         public async void Handle(Api botApi, Update update)
         {
             try
             {
-                MyLogger.Debug("Statistics command processing started");
+                Logger.Debug("Statistics command processing started");
                 StringBuilder response = new StringBuilder();
                 await StackOverflowRep(response);
                 await Hacker(response);
                 await Nuget(response);
-                MyLogger.Debug($"Statistics command result: {response}");
+                Logger.Debug($"Statistics command result: {response}");
                 await botApi.SendTextMessage(update.Message.Chat.Id, response.ToString());
             }
             catch (Exception ex)
             {
-                MyLogger.Error(ex, "Something goes wrong during statistics handling");
+                Logger.Error(ex, "Something goes wrong during statistics handling");
                 await botApi.SendTextMessage(update.Message.Chat.Id, ex.Message);
             }
         }
