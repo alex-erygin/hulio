@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using NLog;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -11,18 +12,24 @@ namespace huliobot
 {
     public class StatisticsCommandHandler : ICommandHandler
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         public async void Handle(Api botApi, Update update)
         {
             try
             {
+                Logger.Debug("Statistics command processing started");
                 StringBuilder response = new StringBuilder();
                 await StackOverflowRep(response);
                 await Hacker(response);
                 await Nuget(response);
+                Logger.Debug($"Statistics command result: {response}");
+
                 await botApi.SendTextMessage(update.Message.Chat.Id, response.ToString());
             }
             catch (Exception ex)
             {
+                Logger.Error(ex, "Something goes wrong during statistics handling");
                 await botApi.SendTextMessage(update.Message.Chat.Id, ex.Message);
             }
         }

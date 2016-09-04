@@ -3,27 +3,34 @@ using System.Net;
 using System.Threading.Tasks;
 using huliobot.Contracts;
 using Newtonsoft.Json;
+using NLog;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace huliobot
 {
     /// <summary>
-    /// Показывает курс доллара.
+    /// Shows UDS/RUB.
     /// </summary>
     public class USDHandler : ICommandHandler
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         public async void Handle(Api botApi, Update update)
         {
             try
             {
+                Logger.Debug("USD command handing begins");
                 await botApi.SendChatAction(update.Message.Chat.Id, ChatAction.Typing);
                 var moneyString = await GetUsdExchange();
                 var money = JsonConvert.DeserializeObject<Money>(moneyString);
-                await botApi.SendTextMessage(update.Message.Chat.Id, $"{money.quotes.USDRUB.ToString("####.00")}");
+
+                Logger.Debug($"Result is {money.quotes.USDRUB:####.00}");
+                await botApi.SendTextMessage(update.Message.Chat.Id, $"{money.quotes.USDRUB:####.00}");
             }
             catch (Exception ex)
             {
+                Logger.Error(ex, "USD goes wrong");
                 await botApi.SendTextMessage(update.Message.Chat.Id, "Error. " + ex.Message);
             }
         }

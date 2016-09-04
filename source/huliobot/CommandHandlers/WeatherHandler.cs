@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using huliobot.Contracts;
 using Newtonsoft.Json;
+using NLog;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -14,15 +15,20 @@ namespace huliobot
     /// </summary>
     public class WeatherHandler : ICommandHandler
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         public async void Handle(Api botApi, Update update)
         {
+            Logger.Debug("Weather command hadling begins");
             var chatId = SettingsStore.Settings["chatId"];
             try
             {
                 await DoSendWeather(botApi, chatId);
+                Logger.Debug("Weather is ok");
             }
             catch (Exception ex)
             {
+                Logger.Error("Something wrong");
                 await SendError(botApi, chatId, ex);
             }
         }
