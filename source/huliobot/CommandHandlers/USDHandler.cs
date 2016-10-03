@@ -38,7 +38,7 @@ namespace huliobot
         private async Task<string> GetUsdExchange()
         {
             var client = new WebClient();
-            var content = await client.DownloadStringTaskAsync($"http://apilayer.net/api/live?access_key={SettingsStore.Settings["currencylayerApiKey"]}&currencies=USD,RUB");
+            var content = await client.DownloadStringTaskAsync($"http://apilayer.net/api/live?access_key={MySettings.CurrencyApiKey}&currencies=USD,RUB");
             return content;
         }
     }

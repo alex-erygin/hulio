@@ -15,15 +15,8 @@ namespace huliobot
         private static void Main(string[] args)
         {
             var hulio = new HulioBot();
-            try
-            {
-                RunMyBots(new IBot[] {hulio});
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex);
-                Thread.Sleep(TimeSpan.FromSeconds(1));
-            }
+            RunMyBots(new IBot[] {hulio});
+
             Console.ReadKey();
         }
 

@@ -41,7 +41,7 @@ namespace huliobot
         private static async Task DoSendWeather(Api botApi, string chatId)
         {
             var url =
-                $"http://api.openweathermap.org/data/2.5/weather?id=524901&appid={SettingsStore.Settings["openWeatherMapId"]}&units=metric";
+                $"http://api.openweathermap.org/data/2.5/weather?id=524901&appid={MySettings.WeatherApiKey}&units=metric";
             var client = new WebClient {Encoding = Encoding.UTF8};
 
             var weatherJson = client.DownloadString(url);
