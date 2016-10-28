@@ -13,7 +13,7 @@ namespace huliobot
     public class StatisticsCommandHandler : ICommandHandler
     {
         private static readonly MyLogger Logger = new MyLogger("#statistics");
-        public async void Handle(Api botApi, Update update)
+        public async void Handle(Api botApi, Message message)
         {
             try
             {
@@ -23,12 +23,12 @@ namespace huliobot
                 await Hacker(response);
                 await Nuget(response);
                 Logger.Debug($"Statistics command result: {response}");
-                await botApi.SendTextMessage(update.Message.Chat.Id, response.ToString());
+                await botApi.SendTextMessage(message.Chat.Id, response.ToString());
             }
             catch (Exception ex)
             {
                 Logger.Error(ex, "Something goes wrong during statistics handling");
-                await botApi.SendTextMessage(update.Message.Chat.Id, ex.Message);
+                await botApi.SendTextMessage(message.Chat.Id, ex.Message);
             }
         }
 

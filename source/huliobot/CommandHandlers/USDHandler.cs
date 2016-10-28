@@ -16,22 +16,22 @@ namespace huliobot
     {
         private static readonly MyLogger Logger = new MyLogger("#usd");
 
-        public async void Handle(Api botApi, Update update)
+        public async void Handle(Api botApi, Message message)
         {
             try
             {
                 Logger.Debug("USD command handing begins");
-                await botApi.SendChatAction(update.Message.Chat.Id, ChatAction.Typing);
+                await botApi.SendChatAction(message.Chat.Id, ChatAction.Typing);
                 var moneyString = await GetUsdExchange();
                 var money = JsonConvert.DeserializeObject<Money>(moneyString);
 
                 Logger.Debug($"Result is {money.quotes.USDRUB:####.00}");
-                await botApi.SendTextMessage(update.Message.Chat.Id, $"{money.quotes.USDRUB:####.00}");
+                await botApi.SendTextMessage(message.Chat.Id, $"{money.quotes.USDRUB:####.00}");
             }
             catch (Exception ex)
             {
                 Logger.Error(ex, "USD goes wrong");
-                await botApi.SendTextMessage(update.Message.Chat.Id, "Error. " + ex.Message);
+                await botApi.SendTextMessage(message.Chat.Id, "Error. " + ex.Message);
             }
         }
 

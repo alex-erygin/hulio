@@ -5,6 +5,6 @@ namespace huliobot
 {
     public interface ICommandHandler
     {
-        void Handle(Api botApi, Update update);
+        void Handle(Api botApi, Message message);
     }
 }

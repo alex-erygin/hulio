@@ -34,27 +34,24 @@ namespace huliobot
     public class HulioBot : IBot
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
+        private Api bot;
         private static int offset;
         private readonly Dictionary<string, ICommandHandler> commandHandlers = new Dictionary<string, ICommandHandler>();
         private readonly MyLogger pipboy = new MyLogger("#pipboy");
+        private readonly TextMessageProcessor textMessageProcessor;
 
         public HulioBot()
         {
-            commandHandlers[Commands.Statistics] = new StatisticsCommandHandler();
-            commandHandlers[Commands.Weather] = new WeatherHandler();
-            commandHandlers[Commands.USD] = new USDHandler();
+            bot = new Api(MySettings.TelegramToken);
+            textMessageProcessor = new TextMessageProcessor(bot);
 
             //http://stackoverflow.com/questions/4926676/mono-webrequest-fails-with-https
             ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) => true;
         }
 
-
-
-
+        
         public async Task Start()
         {
-            var bot = new Api(MySettings.TelegramToken);
             var me = await bot.GetMe();
             Logger.Debug($"{me.Username} started");
 
@@ -70,44 +67,13 @@ namespace huliobot
                         {
                             case MessageType.TextMessage:
                             {
-                                var key = update.Message.Text.ToUpper();
-                                if (commandHandlers.ContainsKey(key))
-                                {
-                                    try
-                                    {
-                                        commandHandlers[key].Handle(bot, update);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Logger.Error(ex, $"Error {key}");
-                                    }
-                                }
-                                else
-                                {
-                                    pipboy.Debug(update.Message.Text);
-                                    await bot.SendTextMessage(SettingsStore.Settings["chatId"], "Unknown command");
-                                }
+                                await textMessageProcessor.ProcessTextMessage(update.Message);
                             }
                                 break;
 
                             case MessageType.PhotoMessage:
                             {
-                                var biggestPhoto =
-                                    update.Message.Photo.OrderByDescending(x => x.Width).FirstOrDefault();
-                                if (biggestPhoto == null)
-                                    return;
-
-                                var filePath = $@"content\{DateTime.Now:dd.MM.yyyy_HH.mm}.png";
-
-                                using (var stream = File.Create($@"C:\apps\fserver\{filePath}"))
-                                {
-                                    await bot.GetFile(biggestPhoto.FileId, stream);
-                                    stream.Flush();
-                                }
-
-                                string url = $@"http://193.124.186.83:3579/{filePath.Replace(@"\","/")}";
-                                    pipboy.Debug(url);
-                                    await bot.SendTextMessage(SettingsStore.Settings["chatId"], url);
+                                await ProcessPhotoMessage(update.Message);
                             }
                                 break;
                         }
@@ -123,6 +89,78 @@ namespace huliobot
                 await Task.Delay(1000);
             }
         }
+
+        private async Task ProcessPhotoMessage(Message message)
+        {
+            var biggestPhoto = message.Photo.OrderByDescending(x => x.Width).FirstOrDefault();
+            if (biggestPhoto == null)
+                return;
+
+            var filePath = $@"content\{DateTime.Now:dd.MM.yyyy_HH.mm.ss}.png";
+
+            using (var stream = File.Create($@"C:\apps\fserver\{filePath}"))
+            {
+                await bot.GetFile(biggestPhoto.FileId, stream);
+                stream.Flush();
+            }
+
+            string url = $@"http://193.124.186.83:3579/{filePath.Replace(@"\", "/")}";
+            pipboy.Debug(url);
+            await bot.SendTextMessage(SettingsStore.Settings["chatId"], url);
+        }
+    }
+
+
+    public class TextMessageProcessor
+    {
+        private readonly Api bot;
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+        private readonly Dictionary<string, ICommandHandler> commandHandlers = new Dictionary<string, ICommandHandler>();
+        private readonly MyLogger pipboy = new MyLogger("#pipboy");
+        private readonly MyLogger todo = new MyLogger("#todo");
+
+        public TextMessageProcessor(Api bot)
+        {
+            this.bot = bot;
+            commandHandlers[Commands.Statistics] = new StatisticsCommandHandler();
+            commandHandlers[Commands.Weather] = new WeatherHandler();
+            commandHandlers[Commands.USD] = new USDHandler();
+        }
+
+        public async Task ProcessTextMessage(Message message)
+        {
+            var key = message.Text.ToUpper();
+            if (commandHandlers.ContainsKey(key))
+            {
+                try
+                {
+                    commandHandlers[key].Handle(bot, message);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, $"Error {key}");
+                }
+            }
+            else
+            {
+                if (message.Text.ToUpper().Contains("ПРИВЕТ"))
+                {
+                    await bot.SendTextMessage(SettingsStore.Settings["chatId"], "Привет");
+                }
+                if (message.Text.ToUpper().Contains("TODO"))
+                {
+                    todo.Debug(message.Text);
+                    await bot.SendTextMessage(SettingsStore.Settings["chatId"], "Схавал");
+                }
+                else
+                {
+                    pipboy.Debug(message.Text);
+                    await bot.SendTextMessage(SettingsStore.Settings["chatId"], "Unknown command");
+                }
+            }
+        }
+
 
         private class Commands
         {

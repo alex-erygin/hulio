@@ -17,7 +17,7 @@ namespace huliobot
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public async void Handle(Api botApi, Update update)
+        public async void Handle(Api botApi, Message message)
         {
             Logger.Debug("Weather command hadling begins");
             var chatId = SettingsStore.Settings["chatId"];
