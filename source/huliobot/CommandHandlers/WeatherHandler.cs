@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using NLog;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace huliobot
 {
@@ -17,7 +18,7 @@ namespace huliobot
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public async void Handle(Api botApi, Message message)
+        public async void Handle(TelegramBotClient botApi, Message message)
         {
             Logger.Debug("Weather command hadling begins");
             var chatId = SettingsStore.Settings["chatId"];
@@ -33,12 +34,12 @@ namespace huliobot
             }
         }
 
-        private static async Task SendError(Api botApi, string chatId, Exception ex)
+        private static async Task SendError(TelegramBotClient botApi, string chatId, Exception ex)
         {
-            await botApi.SendTextMessage(chatId, ex.Message);
+            await botApi.SendTextMessageAsync(chatId, ex.Message);
         }
 
-        private static async Task DoSendWeather(Api botApi, string chatId)
+        private static async Task DoSendWeather(TelegramBotClient botApi, string chatId)
         {
             var url =
                 $"http://api.openweathermap.org/data/2.5/weather?id=524901&appid={MySettings.WeatherApiKey}&units=metric";
@@ -46,8 +47,8 @@ namespace huliobot
 
             var weatherJson = client.DownloadString(url);
             Rootobject weather = JsonConvert.DeserializeObject<Rootobject>(weatherJson);
-            await botApi.SendChatAction(chatId, ChatAction.Typing);
-            await botApi.SendTextMessage(chatId, BuildMessage(weather)
+            await botApi.SendChatActionAsync(chatId, ChatAction.Typing);
+            await botApi.SendTextMessageAsync(chatId, BuildMessage(weather)
                 .ToString());
         }
 

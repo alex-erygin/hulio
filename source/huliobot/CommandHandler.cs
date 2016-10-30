@@ -5,6 +5,6 @@ namespace huliobot
 {
     public interface ICommandHandler
     {
-        void Handle(Api botApi, Message message);
+        void Handle(TelegramBotClient botApi, Message message);
     }
 }

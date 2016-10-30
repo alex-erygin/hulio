@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NLog;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using File = System.IO.File;
 
 namespace huliobot
@@ -34,7 +35,7 @@ namespace huliobot
     public class HulioBot : IBot
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        private Api bot;
+        private TelegramBotClient bot;
         private static int offset;
         private readonly Dictionary<string, ICommandHandler> commandHandlers = new Dictionary<string, ICommandHandler>();
         private readonly MyLogger pipboy = new MyLogger("#pipboy");
@@ -42,7 +43,7 @@ namespace huliobot
 
         public HulioBot()
         {
-            bot = new Api(MySettings.TelegramToken);
+            bot = new TelegramBotClient(MySettings.TelegramToken);
             textMessageProcessor = new TextMessageProcessor(bot);
 
             //http://stackoverflow.com/questions/4926676/mono-webrequest-fails-with-https
@@ -52,14 +53,14 @@ namespace huliobot
         
         public async Task Start()
         {
-            var me = await bot.GetMe();
+            var me = await bot.GetMeAsync();
             Logger.Debug($"{me.Username} started");
 
             while (true)
             {
                 try
                 {
-                    var updates = await bot.GetUpdates(offset);
+                    var updates = await bot.GetUpdatesAsync(offset);
 
                     foreach (var update in updates)
                     {
@@ -84,7 +85,7 @@ namespace huliobot
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(ex, "something goes wrong");
+                    Logger.Error(ex, "something goes wrong. " + ex.Message);
                 }
                 await Task.Delay(1000);
             }
@@ -100,27 +101,27 @@ namespace huliobot
 
             using (var stream = File.Create($@"C:\apps\fserver\{filePath}"))
             {
-                await bot.GetFile(biggestPhoto.FileId, stream);
+                await bot.GetFileAsync(biggestPhoto.FileId, stream);
                 stream.Flush();
             }
 
-            string url = $@"http://193.124.186.83:3579/{filePath.Replace(@"\", "/")}";
+            string url = $@"http://185.117.154.233:3579/{filePath.Replace(@"\", "/")}";
             pipboy.Debug(url);
-            await bot.SendTextMessage(SettingsStore.Settings["chatId"], url);
+            await bot.SendTextMessageAsync(SettingsStore.Settings["chatId"], url);
         }
     }
 
 
     public class TextMessageProcessor
     {
-        private readonly Api bot;
+        private readonly TelegramBotClient bot;
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         private readonly Dictionary<string, ICommandHandler> commandHandlers = new Dictionary<string, ICommandHandler>();
         private readonly MyLogger pipboy = new MyLogger("#pipboy");
         private readonly MyLogger todo = new MyLogger("#todo");
 
-        public TextMessageProcessor(Api bot)
+        public TextMessageProcessor(TelegramBotClient bot)
         {
             this.bot = bot;
             commandHandlers[Commands.Statistics] = new StatisticsCommandHandler();
@@ -146,17 +147,17 @@ namespace huliobot
             {
                 if (message.Text.ToUpper().Contains("ПРИВЕТ"))
                 {
-                    await bot.SendTextMessage(SettingsStore.Settings["chatId"], "Привет");
+                    await bot.SendTextMessageAsync(SettingsStore.Settings["chatId"], "Привет");
                 }
                 if (message.Text.ToUpper().Contains("TODO"))
                 {
                     todo.Debug(message.Text);
-                    await bot.SendTextMessage(SettingsStore.Settings["chatId"], "Схавал");
+                    await bot.SendTextMessageAsync(SettingsStore.Settings["chatId"], "Схавал");
                 }
                 else
                 {
                     pipboy.Debug(message.Text);
-                    await bot.SendTextMessage(SettingsStore.Settings["chatId"], "Unknown command");
+                    await bot.SendTextMessageAsync(SettingsStore.Settings["chatId"], "Logged");
                 }
             }
         }
