@@ -97,7 +97,7 @@ namespace huliobot
             if (biggestPhoto == null)
                 return;
 
-            var filePath = $@"content\{DateTime.Now:dd.MM.yyyy_HH.mm.ss}.png";
+            var filePath = $@"content\{Guid.NewGuid()}{DateTime.Now:dd.MM.yyyy_HH.mm.ss}.png";
 
             using (var stream = File.Create($@"C:\apps\fserver\{filePath}"))
             {
